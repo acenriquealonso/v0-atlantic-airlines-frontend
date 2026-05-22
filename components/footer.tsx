@@ -57,24 +57,12 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 lg:gap-12">
           {/* Logo and contact */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-[#ffad00] rounded-full flex items-center justify-center">
-                <svg 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  className="w-6 h-6 text-[#05164d]"
-                  stroke="currentColor" 
-                  strokeWidth="2"
-                >
-                  <path d="M22 16.5L12 21L2 16.5" />
-                  <path d="M12 12L22 7.5L12 3L2 7.5L12 12Z" />
-                  <path d="M12 12V21" />
-                </svg>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-bold tracking-tight">Atlantic</span>
-                <span className="text-xs text-[#ffad00] -mt-1 tracking-widest">AIRLINES</span>
-              </div>
+            <Link href="/" className="flex items-center mb-6">
+              <img 
+                src="/img/logo.svg" 
+                alt="Atlantic Airlines" 
+                className="h-12 w-auto"
+              />
             </Link>
             
             <p className="text-white/70 mb-6 max-w-xs">

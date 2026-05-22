@@ -18,21 +18,9 @@ export const metadata: Metadata = {
   description: 'Reserva tus vuelos con Atlantic Airlines. Destinos internacionales, servicio premium y las mejores tarifas para tu próximo viaje.',
   generator: 'Atlantic Airlines',
   icons: {
-    icon: [
-      {
-        url: '../src/img/logo.svg',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/img/logo.svg',
+    shortcut: '/img/logo.svg',
+    apple: '/img/logo.svg',
   },
 }
 
