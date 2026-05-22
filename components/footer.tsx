@@ -59,7 +59,7 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center mb-6">
               <img 
-                src="/img/logo.svg" 
+                src="/img/logo-white.svg" 
                 alt="Atlantic Airlines" 
                 className="h-12 w-auto"
               />

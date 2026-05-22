@@ -45,7 +45,7 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <img 
-              src="/img/logo.svg" 
+              src="/img/logo-white.svg" 
               alt="Atlantic Airlines" 
               className="h-12 w-auto"
             />
