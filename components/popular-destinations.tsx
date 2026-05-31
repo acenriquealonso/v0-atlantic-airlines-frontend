@@ -1,58 +1,50 @@
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
+import { getMongoClient } from "@/lib/mongodb"
 
-const destinations = [
-  {
-    id: 1,
-    city: "Nueva York",
-    country: "Estados Unidos",
-    airport: "JFK",
-    price: 459,
-    image: "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=2070&auto=format&fit=crop"
-  },
-  {
-    id: 2,
-    city: "París",
-    country: "Francia",
-    airport: "CDG",
-    price: 329,
-    image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=2073&auto=format&fit=crop"
-  },
-  {
-    id: 3,
-    city: "Tokio",
-    country: "Japón",
-    airport: "NRT",
-    price: 789,
-    image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1994&auto=format&fit=crop"
-  },
-  {
-    id: 4,
-    city: "Londres",
-    country: "Reino Unido",
-    airport: "LHR",
-    price: 299,
-    image: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=2070&auto=format&fit=crop"
-  },
-  {
-    id: 5,
-    city: "Dubai",
-    country: "Emiratos Árabes",
-    airport: "DXB",
-    price: 549,
-    image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=2070&auto=format&fit=crop"
-  },
-  {
-    id: 6,
-    city: "Cancún",
-    country: "México",
-    airport: "CUN",
-    price: 399,
-    image: "https://images.unsplash.com/photo-1552074284-5e88ef1aef18?q=80&w=2070&auto=format&fit=crop"
+type Airport = {
+  _id: number
+  nombre: string
+  codigo_iata: string
+  ciudad: string
+  pais: string
+}
+
+async function getPopularDestinations(): Promise<Airport[]> {
+  try {
+    const client = await getMongoClient()
+    const db = client.db("atlantic_airlines")
+    // Get a subset of airports for the homepage (first 6 or pick by capacity)
+    const docs = await db
+      .collection("aeropuertos")
+      .find({})
+      .sort({ capacidad: -1 })
+      .limit(6)
+      .toArray()
+    return docs as unknown as Airport[]
+  } catch {
+    return []
   }
+}
+
+const images = [
+  "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=2070&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=2073&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1994&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=2070&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=2070&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1552074284-5e88ef1aef18?q=80&w=2070&auto=format&fit=crop",
 ]
 
-export function PopularDestinations() {
+function getImage(id: number): string {
+  return images[id % images.length]
+}
+
+export async function PopularDestinations() {
+  const destinations = await getPopularDestinations()
+
+  if (destinations.length === 0) return null
+
   return (
     <section className="py-16 lg:py-24 bg-[#f5f5f5]">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
@@ -63,7 +55,7 @@ export function PopularDestinations() {
               Destinos populares
             </h2>
             <p className="text-[#666666] text-lg">
-              Explora nuestros vuelos más solicitados
+              Nuestros aeropuertos con mayor capacidad
             </p>
           </div>
           <Link 
@@ -77,16 +69,16 @@ export function PopularDestinations() {
 
         {/* Destinations grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {destinations.map((dest) => (
+          {destinations.map((dest, i) => (
             <Link
-              key={dest.id}
-              href={`/destinos/${dest.city.toLowerCase().replace(/\s+/g, '-')}`}
+              key={dest._id}
+              href={`/vuelos?origen=${dest.codigo_iata}`}
               className="group relative overflow-hidden rounded-lg aspect-[4/3] bg-[#05164d]"
             >
               {/* Image */}
               <img
-                src={dest.image}
-                alt={`${dest.city}, ${dest.country}`}
+                src={getImage(i)}
+                alt={`${dest.ciudad}, ${dest.pais}`}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
               
@@ -97,13 +89,9 @@ export function PopularDestinations() {
               <div className="absolute bottom-0 left-0 right-0 p-6">
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className="text-[#ffad00] text-sm font-medium mb-1">{dest.airport}</p>
-                    <h3 className="text-white text-2xl font-bold">{dest.city}</h3>
-                    <p className="text-white/70">{dest.country}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white/70 text-sm">desde</p>
-                    <p className="text-white text-2xl font-bold">{dest.price}€</p>
+                    <p className="text-[#ffad00] text-sm font-medium mb-1">{dest.codigo_iata}</p>
+                    <h3 className="text-white text-2xl font-bold">{dest.ciudad}</h3>
+                    <p className="text-white/70">{dest.pais}</p>
                   </div>
                 </div>
               </div>

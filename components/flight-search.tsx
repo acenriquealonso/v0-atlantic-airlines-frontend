@@ -29,10 +29,12 @@ export function FlightSearch() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Connect to MongoDB and search flights
-    console.log("Searching flights...", { 
-      tripType, origin, destination, departDate, returnDate, passengers, cabinClass 
-    })
+    const params = new URLSearchParams()
+    if (origin) params.set("origen", origin.toUpperCase().trim())
+    if (destination) params.set("destino", destination.toUpperCase().trim())
+    if (departDate) params.set("fecha", departDate)
+    
+    window.location.href = `/vuelos?${params.toString()}`
   }
 
   return (

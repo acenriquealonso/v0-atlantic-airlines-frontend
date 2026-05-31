@@ -22,7 +22,7 @@ export function HeroSection() {
             <span className="text-[#ffad00]"> comienza aquí</span>
           </h1>
           <p className="text-lg lg:text-xl text-white/80 max-w-2xl mx-auto">
-            Descubre más de 200 destinos en todo el mundo con Atlantic Airlines. 
+            Descubre más de 85 aeropuertos en todo el mundo con Atlantic Airlines. 
             Reserva hoy y vuela con la mejor experiencia.
           </p>
         </div>

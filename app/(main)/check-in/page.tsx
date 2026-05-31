@@ -1,11 +1,66 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plane, Calendar, User } from "lucide-react"
+import { Search, Plane, Calendar, User, Ticket, Luggage } from "lucide-react"
+
+type Billete = {
+  _id: number
+  vuelo: {
+    _id: number
+    ruta: string
+    fecha_salida: string
+  }
+  cliente: {
+    _id: number
+    nombre: string
+    apellidos: string
+    dni: string
+  }
+  fecha_billete: string
+  clase: string
+  asiento: string
+  equipaje_facturado: number
+  precio: number
+  estado: string
+}
 
 export default function CheckInPage() {
-  const [searchType, setSearchType] = useState<"booking" | "ticket">("booking")
-  
+  const [searchType, setSearchType] = useState<"booking" | "dni">("dni")
+  const [dni, setDni] = useState("")
+  const [apellido, setApellido] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [billetes, setBilletes] = useState<Billete[]>([])
+  const [error, setError] = useState("")
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    setBilletes([])
+
+    try {
+      const params = new URLSearchParams()
+      if (dni) params.set("dni", dni.trim())
+      if (apellido) params.set("apellido", apellido.trim())
+
+      const res = await fetch(`/api/billetes?${params.toString()}`)
+      const json = await res.json()
+
+      if (json.ok) {
+        setBilletes(json.data.billetes)
+        if (json.data.billetes.length === 0) {
+          setError("No se encontraron billetes con esos datos.")
+        }
+      } else {
+        setError(json.error || "Error al buscar billetes")
+      }
+    } catch {
+      setError("Error de conexión. Inténtalo de nuevo.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <main className="min-h-screen">
       {/* Hero */}
@@ -18,9 +73,9 @@ export default function CheckInPage() {
         </div>
       </section>
 
-      {/* Check-in Form */}
+      {/* Check-in Form + Results */}
       <section className="py-12 lg:py-16 bg-[#f5f5f5]">
-        <div className="max-w-2xl mx-auto px-4 lg:px-8">
+        <div className="max-w-3xl mx-auto px-4 lg:px-8">
           <div className="bg-white rounded-lg shadow-lg p-8">
             {/* Tabs */}
             <div className="flex gap-4 mb-8">
@@ -35,44 +90,32 @@ export default function CheckInPage() {
                 Código de reserva
               </button>
               <button
-                onClick={() => setSearchType("ticket")}
+                onClick={() => setSearchType("dni")}
                 className={`flex-1 py-3 px-4 rounded font-medium transition-colors ${
-                  searchType === "ticket"
+                  searchType === "dni"
                     ? "bg-[#05164d] text-white"
                     : "bg-[#f5f5f5] text-[#333333] hover:bg-[#dcdcdc]"
                 }`}
               >
-                Número de billete
+                Por DNI
               </button>
             </div>
 
             {/* Form */}
-            <form className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {searchType === "booking" ? (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-[#333333] mb-2">
-                      Código de reserva (PNR)
+                      Nº de billete (ID)
                     </label>
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
+                      <Ticket className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
                       <input
                         type="text"
-                        placeholder="Ej: ABC123"
-                        className="w-full pl-10 pr-4 py-3 border border-[#dcdcdc] rounded focus:outline-none focus:border-[#05164d] focus:ring-1 focus:ring-[#05164d] uppercase"
-                        maxLength={6}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-[#333333] mb-2">
-                      Apellido del pasajero
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
-                      <input
-                        type="text"
-                        placeholder="Apellido como aparece en el billete"
+                        value={dni}
+                        onChange={(e) => setDni(e.target.value)}
+                        placeholder="Ej: 1, 2, 3..."
                         className="w-full pl-10 pr-4 py-3 border border-[#dcdcdc] rounded focus:outline-none focus:border-[#05164d] focus:ring-1 focus:ring-[#05164d]"
                       />
                     </div>
@@ -82,26 +125,30 @@ export default function CheckInPage() {
                 <>
                   <div>
                     <label className="block text-sm font-medium text-[#333333] mb-2">
-                      Número de billete electrónico
+                      DNI del pasajero
                     </label>
                     <div className="relative">
-                      <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
                       <input
                         type="text"
-                        placeholder="Ej: 074-1234567890"
+                        value={dni}
+                        onChange={(e) => setDni(e.target.value)}
+                        placeholder="Ej: 12345678A"
                         className="w-full pl-10 pr-4 py-3 border border-[#dcdcdc] rounded focus:outline-none focus:border-[#05164d] focus:ring-1 focus:ring-[#05164d]"
                       />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#333333] mb-2">
-                      Apellido del pasajero
+                      Apellido (opcional)
                     </label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
                       <input
                         type="text"
-                        placeholder="Apellido como aparece en el billete"
+                        value={apellido}
+                        onChange={(e) => setApellido(e.target.value)}
+                        placeholder="Para mayor precisión"
                         className="w-full pl-10 pr-4 py-3 border border-[#dcdcdc] rounded focus:outline-none focus:border-[#05164d] focus:ring-1 focus:ring-[#05164d]"
                       />
                     </div>
@@ -111,12 +158,58 @@ export default function CheckInPage() {
 
               <button
                 type="submit"
-                className="w-full bg-[#ffad00] text-[#05164d] py-4 rounded font-semibold hover:bg-[#ffbd32] transition-colors"
+                disabled={loading}
+                className="w-full bg-[#ffad00] text-[#05164d] py-4 rounded font-semibold hover:bg-[#ffbd32] transition-colors disabled:opacity-50"
               >
-                Buscar mi vuelo
+                {loading ? "Buscando..." : "Buscar mi reserva"}
               </button>
             </form>
           </div>
+
+          {/* Error */}
+          {error && (
+            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* Results */}
+          {billetes.length > 0 && (
+            <div className="mt-8 space-y-4">
+              <h2 className="text-xl font-bold text-[#05164d]">
+                {billetes.length} billete{billetes.length !== 1 ? "s" : ""} encontrado{billetes.length !== 1 ? "s" : ""}
+              </h2>
+              {billetes.map((b) => (
+                <div key={b._id} className="bg-white rounded-lg shadow-sm p-6 border border-[#dcdcdc]">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                      <p className="text-lg font-bold text-[#05164d]">
+                        {b.cliente.nombre} {b.cliente.apellidos}
+                      </p>
+                      <p className="text-sm text-[#666666]">DNI: {b.cliente.dni}</p>
+                    </div>
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="text-center">
+                        <Plane className="w-5 h-5 text-[#ffad00] mx-auto mb-1" />
+                        <p className="font-semibold text-[#05164d]">{b.vuelo.ruta}</p>
+                        <p className="text-[#666666] text-xs">{b.vuelo.fecha_salida}</p>
+                      </div>
+                      <div className="text-center">
+                        <Calendar className="w-5 h-5 text-[#ffad00] mx-auto mb-1" />
+                        <p className="font-semibold text-[#05164d]">{b.clase}</p>
+                        <p className="text-[#666666] text-xs">Asiento {b.asiento}</p>
+                      </div>
+                      <div className="text-center">
+                        <Luggage className="w-5 h-5 text-[#ffad00] mx-auto mb-1" />
+                        <p className="font-semibold text-[#05164d]">{b.equipaje_facturado}kg</p>
+                        <p className="text-[#666666] text-xs">{b.precio}€</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

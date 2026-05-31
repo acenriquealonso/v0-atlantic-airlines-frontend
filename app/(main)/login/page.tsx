@@ -7,6 +7,50 @@ import { Eye, EyeOff, User, Lock, Mail } from "lucide-react"
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isRegister, setIsRegister] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [nombre, setNombre] = useState("")
+  const [apellidos, setApellidos] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage(null)
+
+    try {
+      const action = isRegister ? "register" : "login"
+      const body: Record<string, string> = { email, password, action }
+      if (isRegister) {
+        body.nombre = nombre
+        body.apellidos = apellidos
+      }
+
+      const res = await fetch("/api/clientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+
+      const json = await res.json()
+
+      if (json.ok) {
+        setMessage({
+          type: "success",
+          text: isRegister
+            ? `✅ Cuenta creada. Bienvenido, ${json.data.cliente.nombre}.`
+            : `✅ Inicio de sesión exitoso. Bienvenido, ${json.data.cliente.nombre}.`,
+        })
+      } else {
+        setMessage({ type: "error", text: json.error || "Error en la operación" })
+      }
+    } catch {
+      setMessage({ type: "error", text: "Error de conexión." })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[#f5f5f5] flex items-center justify-center py-12 px-4">
@@ -34,21 +78,53 @@ export default function LoginPage() {
             }
           </p>
 
-          <form className="space-y-5">
+          {/* Message */}
+          {message && (
+            <div className={`mb-6 p-4 rounded-lg text-sm ${
+              message.type === "success" 
+                ? "bg-green-50 border border-green-200 text-green-700" 
+                : "bg-red-50 border border-red-200 text-red-700"
+            }`}>
+              {message.text}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             {isRegister && (
-              <div>
-                <label className="block text-sm font-medium text-[#333333] mb-2">
-                  Nombre completo
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
-                  <input
-                    type="text"
-                    placeholder="Tu nombre y apellidos"
-                    className="w-full pl-10 pr-4 py-3 border border-[#dcdcdc] rounded focus:outline-none focus:border-[#05164d] focus:ring-1 focus:ring-[#05164d]"
-                  />
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-[#333333] mb-2">
+                    Nombre
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
+                    <input
+                      type="text"
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                      placeholder="Tu nombre"
+                      required
+                      className="w-full pl-10 pr-4 py-3 border border-[#dcdcdc] rounded focus:outline-none focus:border-[#05164d] focus:ring-1 focus:ring-[#05164d]"
+                    />
+                  </div>
                 </div>
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#333333] mb-2">
+                    Apellidos
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
+                    <input
+                      type="text"
+                      value={apellidos}
+                      onChange={(e) => setApellidos(e.target.value)}
+                      placeholder="Tus apellidos"
+                      required
+                      className="w-full pl-10 pr-4 py-3 border border-[#dcdcdc] rounded focus:outline-none focus:border-[#05164d] focus:ring-1 focus:ring-[#05164d]"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div>
@@ -59,7 +135,10 @@ export default function LoginPage() {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@email.com"
+                  required
                   className="w-full pl-10 pr-4 py-3 border border-[#dcdcdc] rounded focus:outline-none focus:border-[#05164d] focus:ring-1 focus:ring-[#05164d]"
                 />
               </div>
@@ -73,7 +152,10 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
                 <input
                   type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Tu contraseña"
+                  required
                   className="w-full pl-10 pr-12 py-3 border border-[#dcdcdc] rounded focus:outline-none focus:border-[#05164d] focus:ring-1 focus:ring-[#05164d]"
                 />
                 <button
@@ -98,27 +180,12 @@ export default function LoginPage() {
               </div>
             )}
 
-            {isRegister && (
-              <label className="flex items-start gap-2 text-sm">
-                <input type="checkbox" className="rounded border-[#dcdcdc] mt-1" />
-                <span className="text-[#666666]">
-                  Acepto los{" "}
-                  <Link href="/terminos" className="text-[#05164d] hover:underline">
-                    términos y condiciones
-                  </Link>{" "}
-                  y la{" "}
-                  <Link href="/privacidad" className="text-[#05164d] hover:underline">
-                    política de privacidad
-                  </Link>
-                </span>
-              </label>
-            )}
-
             <button
               type="submit"
-              className="w-full bg-[#ffad00] text-[#05164d] py-3 rounded font-semibold hover:bg-[#ffbd32] transition-colors"
+              disabled={loading}
+              className="w-full bg-[#ffad00] text-[#05164d] py-3 rounded font-semibold hover:bg-[#ffbd32] transition-colors disabled:opacity-50"
             >
-              {isRegister ? "Crear cuenta" : "Iniciar sesión"}
+              {loading ? "Procesando..." : isRegister ? "Crear cuenta" : "Iniciar sesión"}
             </button>
           </form>
 
@@ -126,7 +193,7 @@ export default function LoginPage() {
             <p className="text-[#666666]">
               {isRegister ? "¿Ya tienes cuenta?" : "¿No tienes cuenta?"}{" "}
               <button
-                onClick={() => setIsRegister(!isRegister)}
+                onClick={() => { setIsRegister(!isRegister); setMessage(null) }}
                 className="text-[#05164d] font-medium hover:underline"
               >
                 {isRegister ? "Iniciar sesión" : "Regístrate gratis"}
