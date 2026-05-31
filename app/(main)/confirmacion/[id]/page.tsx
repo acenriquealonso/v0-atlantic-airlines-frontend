@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { getMongoClient } from "@/lib/mongodb"
+import { getMongoClientSafe } from "@/lib/mongodb"
 import { Check, Plane, Calendar, User, Luggage, CreditCard } from "lucide-react"
 
 type Billete = {
@@ -25,7 +25,8 @@ type Billete = {
 
 async function getBillete(id: string): Promise<Billete | null> {
   try {
-    const client = await getMongoClient()
+    const client = await getMongoClientSafe()
+    if (!client) return null
     const db = client.db("atlantic_airlines")
     const doc = await db.collection("billetes").findOne({ _id: parseInt(id) })
     return doc as unknown as Billete | null

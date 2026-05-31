@@ -1,9 +1,10 @@
-import { getMongoClient } from "@/lib/mongodb";
+import { getMongoClientSafe } from "@/lib/mongodb";
 import Link from "next/link";
 
 async function getStats() {
   try {
-    const client = await getMongoClient();
+    const client = await getMongoClientSafe();
+    if (!client) return { ok: false };
     const db = client.db("atlantic_airlines");
     const [aeropuertos, vuelos, billetes, clientes] = await Promise.all([
       db.collection("aeropuertos").countDocuments(),

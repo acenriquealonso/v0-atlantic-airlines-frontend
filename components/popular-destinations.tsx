@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { getMongoClient } from "@/lib/mongodb"
+import { getMongoClientSafe } from "@/lib/mongodb"
 
 type Airport = {
   _id: number
@@ -12,7 +12,8 @@ type Airport = {
 
 async function getPopularDestinations(): Promise<Airport[]> {
   try {
-    const client = await getMongoClient()
+    const client = await getMongoClientSafe()
+    if (!client) return []
     const db = client.db("atlantic_airlines")
     // Get a subset of airports for the homepage (first 6 or pick by capacity)
     const docs = await db

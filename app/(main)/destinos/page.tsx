@@ -1,6 +1,6 @@
 import { ArrowRight, MapPin, Plane, Building2 } from "lucide-react"
 import Link from "next/link"
-import { getMongoClient } from "@/lib/mongodb"
+import { getMongoClientSafe } from "@/lib/mongodb"
 
 type Airport = {
   _id: number
@@ -15,7 +15,8 @@ type Airport = {
 
 async function getAirports(): Promise<Airport[]> {
   try {
-    const client = await getMongoClient()
+    const client = await getMongoClientSafe()
+    if (!client) return []
     const db = client.db("atlantic_airlines")
     const docs = await db
       .collection("aeropuertos")

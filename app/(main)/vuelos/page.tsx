@@ -1,7 +1,7 @@
 import { Plane, Clock, Users, Calendar, ArrowRight, Search } from "lucide-react"
 import Link from "next/link"
-import { getMongoClient } from "@/lib/mongodb"
 import { VuelosSearchForm } from "@/components/vuelos-search-form"
+import { getMongoClientSafe } from "@/lib/mongodb"
 
 type Vuelo = {
   _id: number
@@ -23,7 +23,8 @@ type Vuelo = {
 
 async function searchVuelos(origen: string, destino: string, fecha: string): Promise<Vuelo[]> {
   try {
-    const client = await getMongoClient()
+    const client = await getMongoClientSafe()
+    if (!client) return []
     const db = client.db("atlantic_airlines")
 
     const filter: Record<string, unknown> = {}
