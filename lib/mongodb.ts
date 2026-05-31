@@ -1,24 +1,32 @@
 import { MongoClient } from "mongodb";
 
-let clientPromise: Promise<MongoClient>;
+const uri = process.env.MONGODB_URI;
 
-function getClientPromise() {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) throw new Error("MONGODB_URI no definida");
-  const client = new MongoClient(uri);
+if (!uri) {
+  throw new Error("MONGODB_URI no definida");
+}
+
+function createClientPromise() {
+  const client = new MongoClient(uri, {
+    maxPoolSize: 10,
+  });
+
   return client.connect();
 }
 
-if (process.env.NODE_ENV === "development") {
-  let globalWithMongo = global as typeof globalThis & {
-    _mongoClientPromise?: Promise<MongoClient>;
-  };
-  if (!globalWithMongo._mongoClientPromise) {
-    globalWithMongo._mongoClientPromise = getClientPromise();
-  }
-  clientPromise = globalWithMongo._mongoClientPromise;
-} else {
-  clientPromise = getClientPromise();
-}
+type MongoCache = typeof globalThis & {
+  _mongoClientPromise?: Promise<MongoClient>;
+};
 
-export default clientPromise;
+const globalWithMongo = globalThis as MongoCache;
+
+export function getMongoClient() {
+  if (!globalWithMongo._mongoClientPromise) {
+    globalWithMongo._mongoClientPromise = createClientPromise().catch((error) => {
+      globalWithMongo._mongoClientPromise = undefined;
+      throw error;
+    });
+  }
+
+  return globalWithMongo._mongoClientPromise;
+}
